@@ -9,4 +9,4 @@ Browser: http://localhost:8000/
 ```
 
 ## Introduction
-This file consists of data visualization of "Video Gamnes Sales" inspired by "Nightingale's Rose Chart" using D3.js.
+This repository consists of data visualization of "Video Gamnes Sales" inspired by "Nightingale's Rose Chart" using D3.js.
