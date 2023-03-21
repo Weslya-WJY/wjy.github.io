@@ -10,3 +10,5 @@ Browser: http://localhost:8000/
 
 ## Introduction
 This repository consists of data visualization of "Video Gamnes Sales" inspired by "Nightingale's Rose Chart" using D3.js.
+
+### Online [Demo](https://weslya-wjy.github.io/wjy.github.io/)
