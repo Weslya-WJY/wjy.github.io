@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>A0248372Y Task B</title>
+	<link href='http://fonts.googleapis.com/css?family=Cabin:500' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" href="reset.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="d3.min.js"></script>
+	<script type="text/javascript" src="script.js"></script>
+	<style type="text/css">
+		pre {font-size:16px;color:#6D6B6B; width:550px}
+	</style>
+</head>
+
+<body>
+	<div class="container" style="margin-top: 20px; margin-left: 20px;">
+<pre>Author: WANG Jiyu
+		E0925524
+Inspired by <a href="http://mbostock.github.io/protovis/ex/crimea-rose.html">Protovis</a><pre>
+	</div>
+	<script type="text/javascript">
+		var yrs = [];
+		for (var i = 2000; i < 2017; i++) {
+			yrs.push(i.toString());
+		}
+
+		var rose = Chart.rose(),
+			height = 600,
+			source = ['NA', 'EU', 'JP', 'OT', "NS", "MS", "Sony", "PC"],
+			labels = yrs
+
+		// Add a title:
+		d3.select('body').append('h1')
+			.attr('class', 'title')
+			.html('Diagrams <span class="small">of the</span> Video Games Sales <span class="small">around</span> the World');
+
+		// Add sub-titles:
+		d3.select('body').append('h3')
+			.attr('class', 'subtitle left')
+			.html('Total Annual Revenue by Region');
+
+		d3.select('body').append('h3')
+			.attr('class', 'subtitle right')
+			.html('Annual Releases of Different Platforms');
+
+		d = {}
+
+		d3.csv('vgsales.csv', function (data) {
+			// Iterate through each row in the CSV file
+			data.forEach(function (row) {
+				// Access each cell in the row by its header name
+				row.Year = Math.round(row.Year).toString()
+				if (d[row.Year] == undefined) {
+					d[row.Year] = {
+						"NA_Sales": 0,
+						"EU_Sales": 0,
+						"JP_Sales": 0,
+						"Other_Sales": 0,
+						"Global_Sales": 0,
+						"Microsoft": 0,
+						"Nintendo": 0,
+						"Sony": 0,
+						"pc": 0
+					}
+				}
+				d[row.Year]["NA_Sales"] += Number(row["NA_Sales"])
+				d[row.Year]["EU_Sales"] += Number(row["EU_Sales"])
+				d[row.Year]["JP_Sales"] += Number(row["JP_Sales"])
+				d[row.Year]["Other_Sales"] += Number(row["Other_Sales"])
+				d[row.Year]["Global_Sales"] += Number(row["Global_Sales"])
+				if (["3DS", "DS", "GBA", "GB", "GC", "N64", "Wii", "WiiU"].includes(row["Platform"]))
+					d[row.Year]["Nintendo"] += Number(row["Global_Sales"])
+				if (["X360", "XB", "XOne"].includes(row["Platform"]))
+					d[row.Year]["Microsoft"] += Number(row["Global_Sales"])
+				if (["PS", "PS1", "PS2", "PS3", "PS4", "PSP", "PSV"].includes(row["Platform"]))
+					d[row.Year]["Sony"] += Number(row["Global_Sales"])
+				if (["PC"].includes(row["Platform"]))
+					d[row.Year]["pc"] += Number(row["Global_Sales"])
+				d[row.Year]["year"] = row.Year
+			});
+
+			r = []
+			for (let key in d) {
+				if (yrs.includes(key)) {
+					r.push(d[key])
+				}
+			}
+			console.log(r);
+
+			function run(data) {
+				var scalar;
+				data.forEach(function (d) {
+					d.date = d.year;
+					d.label = d.year;
+
+					scalar = 1000 * 17 / d.Global_Sales;
+					d.NA_Sales = d.NA_Sales * scalar;
+					d.EU_Sales = d.EU_Sales * scalar;
+					d.JP_Sales = d.JP_Sales * scalar;
+					d.Other_Sales = d.Other_Sales * scalar;
+
+					d.Microsoft = d.Microsoft * scalar;
+					d.Sony = d.Sony * scalar;
+					d.Nintendo = d.Nintendo * scalar;
+					d.pc = d.pc * scalar;
+				});
+
+				// Get the maximum value
+				var maxVal = d3.max(data, function (d) {
+					return d3.max([d.NA_Sales, d.EU_Sales, d.JP_Sales, d.Other_Sales,
+					d.Nintendo, d.Microsoft, d.Sony, d.pc]);
+				});
+
+				// Where the maximum value gives us the maximum radius
+				var maxRadius = Math.sqrt(maxVal * 17 / Math.PI);
+
+				// Divide the dataset in two
+				var dataset2 = data.map(obj => ({...obj})),
+					dataset1 = data.map(obj => ({...obj}));
+
+
+				dataset1.forEach((iter, i) => {
+					iter.Microsoft = 0;
+					iter.Sony = 0;
+					iter.Nintendo = 0;
+					iter.pc = 0;
+				});
+
+				dataset2.forEach((iter, i) => {
+					iter.NA_Sales = 0;
+					iter.EU_Sales = 0;
+					iter.JP_Sales = 0;
+					iter.Other_Sales = 0;
+				});
+
+				// Append a new figure to the DOM
+				figure = d3.select('body')
+					.append('figure');
+
+				// Get the figure width
+				width = parseInt(figure.style('width'), 10);
+
+				// Update the chart generator settings
+				rose.legend(source)
+					.width(width)
+					.height(height)
+					.delay(0)
+					.duration(500)
+					.domain([0, maxRadius])
+					.angle(function (d) { return d.year; })
+					.area(function (d, i) {
+						return [d.NA_Sales, d.EU_Sales, d.JP_Sales, d.Other_Sales,
+						d.Nintendo, d.Microsoft, d.Sony, d.pc];
+					});
+
+				// Bind the data and generate a new chart
+				figure.datum(dataset1)
+					.attr('class', 'chart figure1')
+					.call(rose);
+
+				// Append a new figure to the DOM
+				figure = d3.select('body')
+					.append('figure');
+
+				// Get the figure width
+				width = parseInt(figure.style('width'), 10);
+
+				// Update the chart generator settings
+				rose.width(width)
+					.delay(1000);
+
+				// Bind the second dataset and generate a new chart
+				figure.datum(dataset2)
+					.attr('class', 'chart figure2')
+					.call(rose);
+
+				// Append a caption
+				d3.select('.figure1').append('figcaption')
+					.attr('class', 'caption')
+					.html('The Areas of different colour of wedges are each measured from the centre as the common vertex. <p> &nbsp; <p> NA: Video Games Sales in North America (in millions) <p> EU: Video Games Sales in Europe (in millions) <p> JP: Video Games Sales in Japan (in millions) <p> OT: Video Games Sales in the rest of the world (in millions) <p> &nbsp; <p> NS: Platform of the games release manufactured by Nintendo <p> MS: Platform of the games release manufactured by Microsoft <p> SONY: Platform of the games release manufactured by Sony <p> PC: Platform of the games release on Personal Computer');
+
+				// Create a legend
+				Chart.legend(source);
+
+				// Create a slider
+				Chart.slider(0, data.length, 1); // minVal, maxVal, step
+
+			}
+
+			run(r)
+		})
+
+	</script>
+</body>
+
+</html>
